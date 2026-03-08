@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Management - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>👥 Staff Management</h1>
+    <button class="back-btn" onclick="location.href='index.html'">← Back to Dashboard</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Employee List</h2>
+      <div style="display: flex; gap: 0.75rem;">
+        <button class="btn-primary" onclick="exportStaffForMobile()" style="background: #3498db;">📤 Export for Mobile App</button>
+        <button class="btn-primary" onclick="addStaff()">+ Add New Employee</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <table id="staffTable">
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Rate Type</th>
+            <th>Rate</th>
+            <th>Active</th>
+            <th>UIF %</th>
+            <th>PAYE %</th>
+            <th>Tax %</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div id="addStaffModal" class="modal">
+  <div class="modal-content">
+    <h3>➕ Add New Employee</h3>
+    <label>Employee ID
+      <input type="text" id="newEmployeeID" placeholder="Enter unique employee ID">
+    </label>
+    <label>Full Name
+      <input type="text" id="newName" placeholder="Enter employee name">
+    </label>
+    <label>Position
+      <input type="text" id="newPosition" placeholder="e.g., Manager, Cashier">
+    </label>
+    <label>Rate Type
+      <select id="newRateType">
+        <option>Hourly</option>
+        <option>Daily</option>
+      </select>
+    </label>
+    <label>Rate (R)
+      <input type="number" id="newRate" step="0.01" placeholder="0.00">
+    </label>
+    <label>Employment Status
+      <select id="newActive">
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+    </label>
+    <label>UIF Percentage (%)
+      <input type="number" id="newUIF" value="1" step="0.1">
+    </label>
+    <label>PAYE Percentage (%)
+      <input type="number" id="newPAYE" value="0" step="0.1">
+    </label>
+    <label>Tax Percentage (%)
+      <input type="number" id="newTax" value="10" step="0.1">
+    </label>
+    <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: #667eea;">Additional Details</h4>
+    <label>ID Number
+      <input type="text" id="newIDNumber" placeholder="ID/Passport Number">
+    </label>
+    <label>Address
+      <input type="text" id="newAddress" placeholder="Physical Address">
+    </label>
+    <label>Tax Reference Number
+      <input type="text" id="newTaxRef" placeholder="Tax Reference">
+    </label>
+    <label>UIF Reference Number
+      <input type="text" id="newUIFRef" placeholder="UIF Reference">
+    </label>
+    <label>Bank Name
+      <input type="text" id="newBankName" placeholder="Bank Name">
+    </label>
+    <label>Account Number
+      <input type="text" id="newAccountNumber" placeholder="Account Number">
+    </label>
+    <label>Branch Code
+      <input type="text" id="newBranchCode" placeholder="Branch Code">
+    </label>
+    <label>Leave Days (Annual)
+      <input type="number" id="newLeaveDays" value="15" step="1" min="0">
+    </label>
+    <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-primary" onclick="saveNewStaff()">Save Employee</button>
+      <button class="btn-outline" onclick="cancelAdd()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Employee Modal -->
+<div id="editStaffModal" class="modal">
+  <div class="modal-content">
+    <h3>✏️ Edit Employee</h3>
+    <input type="hidden" id="editIndex">
+    <label>Employee ID
+      <input type="text" id="editEmployeeID">
+    </label>
+    <label>Full Name
+      <input type="text" id="editName">
+    </label>
+    <label>Position
+      <input type="text" id="editPosition">
+    </label>
+    <label>Rate Type
+      <select id="editRateType">
+        <option>Hourly</option>
+        <option>Daily</option>
+      </select>
+    </label>
+    <label>Rate (R)
+      <input type="number" id="editRate" step="0.01">
+    </label>
+    <label>Employment Status
+      <select id="editActive">
+        <option>Yes</option>
+        <option>No</option>
+      </select>
+    </label>
+    <label>UIF Percentage (%)
+      <input type="number" id="editUIF" step="0.1">
+    </label>
+    <label>PAYE Percentage (%)
+      <input type="number" id="editPAYE" step="0.1">
+    </label>
+    <label>Tax Percentage (%)
+      <input type="number" id="editTax" step="0.1">
+    </label>
+    <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: #667eea;">Additional Details</h4>
+    <label>ID Number
+      <input type="text" id="editIDNumber" placeholder="ID/Passport Number">
+    </label>
+    <label>Address
+      <input type="text" id="editAddress" placeholder="Physical Address">
+    </label>
+    <label>Tax Reference Number
+      <input type="text" id="editTaxRef" placeholder="Tax Reference">
+    </label>
+    <label>UIF Reference Number
+      <input type="text" id="editUIFRef" placeholder="UIF Reference">
+    </label>
+    <label>Bank Name
+      <input type="text" id="editBankName" placeholder="Bank Name">
+    </label>
+    <label>Account Number
+      <input type="text" id="editAccountNumber" placeholder="Account Number">
+    </label>
+    <label>Branch Code
+      <input type="text" id="editBranchCode" placeholder="Branch Code">
+    </label>
+    <label>Leave Days (Annual)
+      <input type="number" id="editLeaveDays" value="15" step="1" min="0">
+    </label>
+    <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-primary" onclick="saveEditStaff()">Save Changes</button>
+      <button class="btn-outline" onclick="cancelEdit()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/staff.js"></script>
+</body>
+</html>

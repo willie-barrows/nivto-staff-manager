@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIVTO - Facebook Ads ROI Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .calculator {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        input[type="number"],
+        input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        input[type="range"] {
+            padding: 0;
+        }
+
+        .range-value {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .results {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 16px;
+        }
+
+        .result-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .profit {
+            background: rgba(67, 233, 123, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .profit-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .profit.positive {
+            background: rgba(67, 233, 123, 0.3);
+        }
+
+        .profit.negative {
+            background: rgba(250, 112, 154, 0.3);
+        }
+
+        .recommendations {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .recommendations h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .recommendations ul {
+            margin-left: 20px;
+        }
+
+        .recommendations li {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            padding: 12px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .target-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minrar(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Facebook Ads ROI Calculator</h1>
+        <p class="subtitle">Plan your advertising budget and predict results for NIVTO</p>
+
+        <div class="calculator">
+            <div class="section">
+                <h2>📊 Budget Settings</h2>
+                
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="setPreset('conservative')">🐢 Conservative</button>
+                    <button class="preset-btn" onclick="setPreset('moderate')">📈 Moderate</button>
+                    <button class="preset-btn" onclick="setPreset('aggressive')">🚀 Aggressive</button>
+                </div>
+
+                <div class="input-group">
+                    <label>Daily Ad Budget (Rand)</label>
+                    <input type="range" id="dailyBudget" min="20" max="500" value="50" oninput="calculate()">
+                    <div class="range-value">R<span id="budgetDisplay">50</span> per day</div>
+                    <p class="helper-text">Start with R50/day and scale up based on results</p>
+                </div>
+
+                <div class="input-group">
+                    <label>Campaign Duration (Days)</label>
+                    <input type="range" id="duration" min="7" max="90" value="30" oninput="calculate()">
+                    <div class="range-value"><span id="durationDisplay">30</span> days</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎯 Performance Assumptions</h2>
+
+                <div class="input-group">
+                    <label>Expected CTR (Click-Through Rate %)</label>
+                    <input type="range" id="ctr" min="0.5" max="5" step="0.1" value="1.5" oninput="calculate()">
+                    <div class="range-value"><span id="ctrDisplay">1.5</span>%</div>
+                    <p class="helper-text">Industry average: 1-2% | Good: 2-3% | Excellent: 3-5%</p>
+                </div>
+
+                <div class="input-group">
+                    <label>Website Conversion Rate (%)</label>
+                    <input type="range" id="conversionRate" min="1" max="20" step="0.5" value="5" oninput="calculate()">
+                    <div class="range-value"><span id="conversionDisplay">5</span>%</div>
+                    <p class="helper-text">Visitors who download: Conservative: 3-5% | Good: 5-10% | Great: 10-15%</p>
+                </div>
+
+                <div class="input-group">
+                    <label>Download to Purchase Rate (%)</label>
+                    <input type="range" id="purchaseRate" min="1" max="30" step="1" value="10" oninput="calculate()">
+                    <div class="range-value"><span id="purchaseDisplay">10</span>%</div>
+                    <p class="helper-text">Downloads who become paying customers after trial</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>💵 Revenue Settings</h2>
+
+                <div class="input-group">
+                    <label>Average Customer Value (First Month)</label>
+                    <input type="number" id="customerValue" value="349" oninput="calculate()">
+                    <p class="helper-text">Monthly plan: R349 | Quarterly: R947 | Annual: R3,588</p>
+                </div>
+            </div>
+
+            <div class="results">
+                <h2 style="color: white; border-bottom-color: rgba(255,255,255,0.3);">📈 Projected Results</h2>
+
+                <div class="target-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Ad Spend</div>
+                        <div class="metric-value">R<span id="totalSpend">0</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Impressions</div>
+                        <div class="metric-value"><span id="impressions">0</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Clicks</div>
+                        <div class="metric-value"><span id="clicks">0</span></div>
+                    </div>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Cost Per Click (CPC)</span>
+                    <span class="result-value">R<span id="cpc">0</span></span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Website Visitors</span>
+                    <span class="result-value"><span id="visitors">0</span> people</span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">App Downloads</span>
+                    <span class="result-value"><span id="downloads">0</span> downloads</span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Paying Customers</span>
+                    <span class="result-value"><span id="customers">0</span> customers</span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Total Revenue</span>
+                    <span class="result-value">R<span id="revenue">0</span></span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Cost Per Customer</span>
+                    <span class="result-value">R<span id="cac">0</span></span>
+                </div>
+
+                <div class="profit" id="profitSection">
+                    <div class="result-label">NET PROFIT/LOSS</div>
+                    <div class="profit-amount" id="profit">R0</div>
+                    <div id="profitPercent" style="font-size: 18px;">0% ROI</div>
+                </div>
+            </div>
+
+            <div class="recommendations" id="recommendations">
+                <h3>💡 Recommendations</h3>
+                <ul id="recommendationsList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setPreset(type) {
+            switch(type) {
+                case 'conservative':
+                    document.getElementById('dailyBudget').value = 50;
+                    document.getElementById('ctr').value = 1.0;
+                    document.getElementById('conversionRate').value = 3;
+                    document.getElementById('purchaseRate').value = 5;
+                    break;
+                case 'moderate':
+                    document.getElementById('dailyBudget').value = 100;
+                    document.getElementById('ctr').value = 1.5;
+                    document.getElementById('conversionRate').value = 5;
+                    document.getElementById('purchaseRate').value = 10;
+                    break;
+                case 'aggressive':
+                    document.getElementById('dailyBudget').value = 200;
+                    document.getElementById('ctr').value = 2.5;
+                    document.getElementById('conversionRate').value = 8;
+                    document.getElementById('purchaseRate').value = 15;
+                    break;
+            }
+            calculate();
+        }
+
+        function calculate() {
+            // Get inputs
+            const dailyBudget = parseFloat(document.getElementById('dailyBudget').value);
+            const duration = parseFloat(document.getElementById('duration').value);
+            const ctr = parseFloat(document.getElementById('ctr').value) / 100;
+            const conversionRate = parseFloat(document.getElementById('conversionRate').value) / 100;
+            const purchaseRate = parseFloat(document.getElementById('purchaseRate').value) / 100;
+            const customerValue = parseFloat(document.getElementById('customerValue').value);
+
+            // Update displays
+            document.getElementById('budgetDisplay').textContent = dailyBudget.toFixed(0);
+            document.getElementById('durationDisplay').textContent = duration.toFixed(0);
+            document.getElementById('ctrDisplay').textContent = (ctr * 100).toFixed(1);
+            document.getElementById('conversionDisplay').textContent = (conversionRate * 100).toFixed(0);
+            document.getElementById('purchaseDisplay').textContent = (purchaseRate * 100).toFixed(0);
+
+            // Calculate metrics
+            const totalSpend = dailyBudget * duration;
+            const cpm = 50; // Rand per 1000 impressions (SA average)
+            const impressions = Math.round((totalSpend / cpm) * 1000);
+            const clicks = Math.round(impressions * ctr);
+            const cpc = clicks > 0 ? totalSpend / clicks : 0;
+            const visitors = clicks; // Assume 1:1 for landing page views
+            const downloads = Math.round(visitors * conversionRate);
+            const customers = Math.round(downloads * purchaseRate);
+            const revenue = customers * customerValue;
+            const profit = revenue - totalSpend;
+            const roi = totalSpend > 0 ? ((profit / totalSpend) * 100) : 0;
+            const cac = customers > 0 ? totalSpend / customers : 0;
+
+            // Update results
+            document.getElementById('totalSpend').textContent = totalSpend.toFixed(0);
+            document.getElementById('impressions').textContent = impressions.toLocaleString();
+            document.getElementById('clicks').textContent = clicks.toLocaleString();
+            document.getElementById('cpc').textContent = cpc.toFixed(2);
+            document.getElementById('visitors').textContent = visitors.toLocaleString();
+            document.getElementById('downloads').textContent = downloads.toLocaleString();
+            document.getElementById('customers').textContent = customers;
+            document.getElementById('revenue').textContent = revenue.toFixed(0);
+            document.getElementById('cac').textContent = cac.toFixed(0);
+            document.getElementById('profit').textContent = 'R' + profit.toFixed(0);
+            document.getElementById('profitPercent').textContent = roi.toFixed(1) + '% ROI';
+
+            // Update profit styling
+            const profitSection = document.getElementById('profitSection');
+            profitSection.className = profit >= 0 ? 'profit positive' : 'profit negative';
+
+            // Generate recommendations
+            generateRecommendations(cpc, ctr, conversionRate, purchaseRate, roi, cac, customerValue);
+        }
+
+        function generateRecommendations(cpc, ctr, conversionRate, purchaseRate, roi, cac, customerValue) {
+            const recommendations = [];
+
+            // CPC recommendations
+            if (cpc > 5) {
+                recommendations.push('⚠️ Your CPC is high (>R5). Try narrowing your audience or improving ad relevance.');
+            } else if (cpc < 2) {
+                recommendations.push('✅ Excellent CPC! Consider scaling up your budget to reach more people.');
+            }
+
+            // CTR recommendations
+            if (ctr < 0.015) {
+                recommendations.push('⚠️ Low CTR (<1.5%). Improve your ad image and headline to increase clicks.');
+            } else if (ctr > 0.03) {
+                recommendations.push('✅ Great CTR! Your ads are resonating with your audience.');
+            }
+
+            // Conversion rate recommendations
+            if (conversionRate < 0.05) {
+                recommendations.push('⚠️ Low website conversion (<5%). Improve your landing page or offer a stronger incentive.');
+            } else if (conversionRate > 0.10) {
+                recommendations.push('✅ Strong conversion rate! Your website is converting well.');
+            }
+
+            // Purchase rate recommendations
+            if (purchaseRate < 0.08) {
+                recommendations.push('⚠️ Low purchase rate (<8%). Follow up with trial users via email to encourage conversion.');
+            }
+
+            // ROI recommendations
+            if (roi < 0) {
+                recommendations.push('🚨 Negative ROI. Reduce spending or improve conversion rates before scaling.');
+            } else if (roi < 50) {
+                recommendations.push('💡 Break-even to small profit. Optimize further before increasing budget.');
+            } else if (roi >= 100) {
+                recommendations.push('🚀 Excellent ROI! Scale up your budget to maximize returns.');
+            }
+
+            // CAC recommendations
+            if (cac > customerValue) {
+                recommendations.push('⚠️ Customer Acquisition Cost exceeds customer value. System is not profitable yet.');
+            } else if (cac < customerValue * 0.3) {
+                recommendations.push('✅ Very efficient customer acquisition. Consider aggressive scaling.');
+            }
+
+            // Budget recommendations
+            const dailyBudget = parseFloat(document.getElementById('dailyBudget').value);
+            if (dailyBudget < 50 && roi > 100) {
+                recommendations.push('💡 Consider increasing budget from R' + dailyBudget + ' to R100-150/day with these conversion rates.');
+            }
+
+            // Display recommendations
+            const list = document.getElementById('recommendationsList');
+            list.innerHTML = recommendations.map(rec => `<li>${rec}</li>`).join('');
+        }
+
+        // Calculate on page load
+        window.onload = () => calculate();
+    </script>
+</body>
+</html>

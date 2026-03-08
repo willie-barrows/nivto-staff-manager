@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leave Management - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🏖️ Leave Management</h1>
+    <button class="back-btn" onclick="location.href='index.html'">← Back to Dashboard</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Leave Records</h2>
+      <button class="btn-primary" onclick="openLeaveModal()">+ Record Leave</button>
+    </div>
+    <div class="card-body">
+      <table id="leaveTable">
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Days</th>
+            <th>Reason</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Leave Summary by Employee</h2>
+    </div>
+    <div class="card-body">
+      <table id="leaveSummaryTable">
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Annual Allocation</th>
+            <th>Days Used</th>
+            <th>Days Remaining</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Leave Modal -->
+<div id="leaveModal" class="modal">
+  <div class="modal-content">
+    <h3>📝 Record Leave</h3>
+    <label>Employee
+      <select id="employeeSelect"></select>
+    </label>
+    <label>Start Date
+      <input type="date" id="startDate">
+    </label>
+    <label>End Date
+      <input type="date" id="endDate">
+    </label>
+    <label>Days Taken
+      <input type="number" id="daysTaken" min="0.5" step="0.5" placeholder="Auto-calculated">
+    </label>
+    <label>Reason
+      <input type="text" id="leaveReason" placeholder="e.g., Annual Leave, Sick Leave">
+    </label>
+    <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-primary" onclick="saveLeave()">Save Leave</button>
+      <button class="btn-outline" onclick="cancelLeave()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Leave Modal -->
+<div id="editLeaveModal" class="modal">
+  <div class="modal-content">
+    <h3>✏️ Edit Leave Record</h3>
+    <input type="hidden" id="editIndex">
+    <label>Employee
+      <select id="editEmployeeSelect" disabled></select>
+    </label>
+    <label>Start Date
+      <input type="date" id="editStartDate">
+    </label>
+    <label>End Date
+      <input type="date" id="editEndDate">
+    </label>
+    <label>Days Taken
+      <input type="number" id="editDaysTaken" min="0.5" step="0.5">
+    </label>
+    <label>Reason
+      <input type="text" id="editLeaveReason">
+    </label>
+    <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-primary" onclick="saveEditLeave()">Save Changes</button>
+      <button class="btn-outline" onclick="cancelEditLeave()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/leave.js"></script>
+</body>
+</html>

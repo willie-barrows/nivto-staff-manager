@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setup - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="card" style="max-width: 600px; margin: 4rem auto;">
+    <div class="card-header" style="text-align: center; border: none;">
+      <div style="width: 100%;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🚀</div>
+        <h1 style="color: var(--primary-color); margin-bottom: 0.5rem;">Welcome to NIVTO Staff Management</h1>
+        <p style="color: var(--text-secondary);">Let's set up your company profile</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <label>
+        Company Name *
+        <input type="text" id="companyName" placeholder="Enter your company name" required>
+      </label>
+      
+      <label>
+        Address
+        <input type="text" id="address" placeholder="Company address">
+      </label>
+      
+      <label>
+        Contact Info
+        <input type="text" id="contact" placeholder="Phone, email, or website">
+      </label>
+      
+      <label style="display: flex; align-items: center; cursor: pointer;">
+        <input type="checkbox" id="enablePassword">
+        <span>Enable Admin Password Protection</span>
+      </label>
+      
+      <div id="pwdFields" style="display:none; margin-top: 1rem; padding: 1rem; background: var(--background); border-radius: var(--radius-md);">
+        <label>
+          Password
+          <input type="password" id="password" placeholder="Enter password">
+        </label>
+        
+        <label>
+          Confirm Password
+          <input type="password" id="confirmPassword" placeholder="Confirm password">
+        </label>
+      </div>
+      
+      <button type="button" class="btn-primary" onclick="saveSetup()" style="width: 100%; margin-top: 1.5rem; padding: 0.875rem;">Save & Continue →</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/setup.js"></script>
+<script>
+  console.log('Setup page loaded');
+  console.log('window.api:', window.api);
+  console.log('window.saveSetup:', window.saveSetup);
+</script>
+</body>
+</html>

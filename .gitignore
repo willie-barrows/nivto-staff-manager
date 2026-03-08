@@ -1,0 +1,59 @@
+# Node modules
+node_modules/
+package-lock.json
+
+# Environment variables and secrets
+.env
+*.env
+activation key.txt
+
+# Build outputs
+dist/
+build/
+*.exe
+*.blockmap
+
+# Electron
+out/
+
+# Android
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+*.log
+
+# Android Gradle
+NIVTOTimeClockApp/.gradle/
+NIVTOTimeClockApp/build/
+NIVTOTimeClockApp/app/build/
+NIVTOTimeClockApp/.idea/
+
+# User data
+StaffManager/data/*.csv
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

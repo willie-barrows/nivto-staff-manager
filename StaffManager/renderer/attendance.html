@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance Tracking - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📅 Attendance Tracking</h1>
+    <button class="back-btn" onclick="location.href='index.html'">← Back to Dashboard</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Daily Attendance</h2>
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <label style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-weight: 500;">Date:</span>
+          <input type="date" id="attendanceDate" style="padding: 0.5rem;">
+        </label>
+        <button class="btn-success" onclick="openAttendanceModal()">+ Add Attendance</button>
+        <button class="btn-primary" onclick="openImportModal()" style="background: #3498db;">📥 Import CSV</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <table id="attTable">
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Clock In</th>
+            <th>Clock Out</th>
+            <th>Hours Worked</th>
+            <th>Break Time</th>
+            <th>Break Payable</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance Entry Modal -->
+<div id="attendanceModal" class="modal">
+  <div class="modal-content">
+    <h3>📝 Record Attendance</h3>
+    <label>Employee
+      <select id="employeeSelect"></select>
+    </label>
+    <label>Hours Worked
+      <input type="number" id="hoursWorked" min="0" step="0.5" placeholder="0.0">
+    </label>
+    <label>Break Time (hours)
+      <input type="number" id="breakTime" min="0" step="0.5" placeholder="0.0" value="0">
+    </label>
+    <label>Break Payable?
+      <select id="breakPayable">
+        <option value="No">No</option>
+        <option value="Yes">Yes</option>
+      </select>
+    </label>
+    <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-primary" onclick="saveAttendanceEntry()">Save Attendance</button>
+      <button class="btn-outline" onclick="cancelAttendance()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div id="importModal" class="modal">
+  <div class="modal-content" style="max-width: 600px;">
+    <h3>📥 Import Attendance CSV</h3>
+    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Import attendance data from Android app export or external CSV file.</p>
+    
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+      <strong>Import to Date:</strong> <span id="importDateDisplay" style="color: var(--primary-color);"></span>
+    </div>
+    
+    <label style="margin-bottom: 1rem;">
+      <span style="font-weight: 500;">Select CSV File</span>
+      <input type="file" id="importFileInput" accept=".csv" style="margin-top: 0.5rem;">
+    </label>
+    
+    <div id="importPreview" style="display: none; margin: 1rem 0;">
+      <h4 style="margin-bottom: 0.5rem;">Preview:</h4>
+      <div id="importPreviewContent" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; max-height: 300px; overflow-y: auto;">
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-primary" id="importConfirmBtn" onclick="confirmImport()" disabled>Import Records</button>
+      <button class="btn-outline" onclick="cancelImport()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/attendance.js"></script>
+</body>
+</html>

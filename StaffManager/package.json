@@ -1,0 +1,80 @@
+{
+  "name": "nivto",
+  "version": "1.0.1",
+  "description": "NIVTO - The Pulse of the Future | Staff Management & Payout System",
+  "main": "main.js",
+  "author": "NIVTO",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64",
+    "build-portable": "electron-builder --win portable --x64",
+    "payment-server": "node payment-server.js",
+    "payment-dev": "cross-env NODE_ENV=development node payment-server.js",
+    "payment-prod": "cross-env NODE_ENV=production node payment-server.js",
+    "test-email": "node test-email.js",
+    "generate-key": "node generate-license.js"
+  },
+  "build": {
+    "appId": "com.nivto.app",
+    "productName": "NIVTO",
+    "icon": "nivto-logo.png",
+    "publish": {
+      "provider": "github",
+      "owner": "willie-barrows",
+      "repo": "nivto-staff-manager"
+    },
+    "win": {
+      "icon": "nivto-logo.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "allowElevation": true,
+      "perMachine": false,
+      "include": "build/installer.nsh"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "license.js",
+      "sync-server.js",
+      "qr-generator.js",
+      "package.json",
+      "renderer/**/*",
+      "styles/**/*",
+      "data/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.4",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.6.1",
+    "electron-updater": "^6.1.7",
+    "express": "^4.22.1",
+    "nodemailer": "^6.10.1",
+    "papaparse": "^5.4.1",
+    "pdfkit": "^0.13.0",
+    "qrcode": "^1.5.3",
+    "socket.io": "^4.6.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "electron": "^26.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}

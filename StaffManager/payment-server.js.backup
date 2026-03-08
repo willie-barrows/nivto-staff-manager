@@ -1,0 +1,793 @@
+/**
+ * NIVTO Staff Manager - Automated Payment Server
+ * 
+ * This Express server handles:
+ * - Payment processing via PayFast/Paystack
+ * - Automatic license key generation
+ * - Email delivery to customers
+ * - Webhook handling for payment confirmations
+ * - Recurring subscription management
+ * 
+ * Setup Instructions:
+ * 1. npm install express body-parser nodemailer
+ * 2. Configure your payment provider credentials below
+ * 3. Set up your email SMTP settings
+ * 4. Deploy to a server (e.g., Heroku, DigitalOcean, AWS)
+ * 5. Configure webhook URL in your payment provider dashboard
+ */
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const { generateLicenseKey } = require('./generate-license');
+
+const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// ============================================================================
+// CONFIGURATION - Update these with your actual credentials
+// ============================================================================
+
+const CONFIG = {
+    // Server Settings
+    PORT: process.env.PORT || 3000,
+    BASE_URL: process.env.BASE_URL || 'https://your-domain.com',
+    
+    // Yoco Configuration (South African)
+    YOCO: {
+        SECRET_KEY: process.env.YOCO_SECRET_KEY || 'your_secret_key',
+        PUBLIC_KEY: process.env.YOCO_PUBLIC_KEY || 'your_public_key',
+        API_URL: process.env.NODE_ENV === 'production' 
+            ? 'https://online.yoco.com/v1' 
+            : 'https://online.yoco.com/v1', // Yoco doesn't have separate sandbox
+        MODE: process.env.NODE_ENV !== 'production' ? 'test' : 'live'
+    },
+    
+    // Email Configuration (for sending license keys)
+    EMAIL: {
+        SERVICE: 'gmail', // or 'smtp'
+        HOST: process.env.EMAIL_HOST || 'smtp.gmail.com',
+        PORT: 587,
+        SECURE: false,
+        AUTH: {
+            USER: process.env.EMAIL_USER || 'your-email@gmail.com',
+            PASS: process.env.EMAIL_PASSWORD || 'your-app-password'
+        },
+        FROM: process.env.EMAIL_FROM || 'NIVTO Staff Manager <noreply@nivto.com>'
+    },
+    
+    // Subscription Pricing (in ZAR)
+    PRICING: {
+        MONTHLY: 349,
+        QUARTERLY: 947,    // 3 months - can add discount
+        BIANNUAL: 1794,    // 6 months - can add discount
+        ANNUAL: 3588       // 12 months - can add discount
+    }
+};
+
+// ============================================================================
+// EMAIL CONFIGURATION
+// ============================================================================
+
+const transporter = nodemailer.createTransport({
+    host: CONFIG.EMAIL.HOST,
+    port: CONFIG.EMAIL.PORT,
+    secure: CONFIG.EMAIL.SECURE,
+    auth: {
+        user: CONFIG.EMAIL.AUTH.USER,
+        pass: CONFIG.EMAIL.AUTH.PASS
+    }
+});
+
+// ============================================================================
+// LICENSE KEY GENERATION
+// ============================================================================
+
+function generateSubscriptionKey(daysValid) {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + daysValid);
+    
+    const year = expiryDate.getFullYear();
+    const month = String(expiryDate.getMonth() + 1).padStart(2, '0');
+    const day = String(expiryDate.getDate()).padStart(2, '0');
+    const dateStr = `${year}${month}${day}`;
+    
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 5; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    return `NIVTO-SUB-${dateStr}-${code}`;
+}
+
+// ============================================================================
+// EMAIL TEMPLATES
+// ============================================================================
+
+function getLicenseEmailHtml(customerName, licenseKey, expiryDate, plan) {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                  color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+        .license-box { background: white; border: 2px solid #667eea; padding: 20px; 
+                       margin: 20px 0; border-radius: 8px; text-align: center; }
+        .license-key { font-size: 24px; font-weight: bold; color: #667eea; 
+                       font-family: 'Courier New', monospace; letter-spacing: 2px; }
+        .info-box { background: #e3f2fd; border-left: 4px solid #2196f3; 
+                    padding: 15px; margin: 20px 0; }
+        .button { display: inline-block; background: #667eea; color: white; 
+                  padding: 12px 30px; text-decoration: none; border-radius: 5px; 
+                  margin: 20px 0; }
+        .footer { text-align: center; color: #999; font-size: 12px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Welcome to NIVTO Staff Manager!</h1>
+            <p>Thank you for your subscription</p>
+        </div>
+        
+        <div class="content">
+            <p>Hi ${customerName || 'Customer'},</p>
+            
+            <p>Your payment has been successfully processed! Below is your license key for NIVTO Staff Manager.</p>
+            
+            <div class="license-box">
+                <h2>Your License Key</h2>
+                <div class="license-key">${licenseKey}</div>
+                <p style="color: #666; margin-top: 10px;">Valid until: ${expiryDate}</p>
+            </div>
+            
+            <div class="info-box">
+                <h3>📋 What's Included:</h3>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>✅ Windows Desktop App (Payroll Management)</li>
+                    <li>✅ Android Time Clock App for Employees</li>
+                    <li>✅ Automatic Updates for Both Apps</li>
+                    <li>✅ CSV Import/Export</li>
+                    <li>✅ PDF Payslip Generation</li>
+                    <li>✅ Unlimited Employees</li>
+                </ul>
+            </div>
+            
+            <h3>🚀 Getting Started:</h3>
+            <ol>
+                <li>Download NIVTO Staff Manager from your account portal</li>
+                <li>Install the application (Windows or Android)</li>
+                <li>When prompted, enter your license key: <strong>${licenseKey}</strong></li>
+                <li>Click "Activate License"</li>
+                <li>Start managing your staff!</li>
+            </ol>
+            
+            <div style="text-align: center;">
+                <a href="${CONFIG.BASE_URL}/downloads" class="button">Download Apps</a>
+            </div>
+            
+            <div class="info-box">
+                <h3>💰 Subscription Details:</h3>
+                <p><strong>Plan:</strong> ${plan}<br>
+                <strong>Price:</strong> R${CONFIG.PRICING.MONTHLY}/month<br>
+                <strong>Valid Until:</strong> ${expiryDate}<br>
+                <strong>Auto-Renewal:</strong> Enabled</p>
+            </div>
+            
+            <h3>📞 Need Help?</h3>
+            <p>If you have any questions or need assistance:</p>
+            <ul>
+                <li>📧 Email: support@nivto.com</li>
+                <li>📞 Phone: 074 353 2291</li>
+                <li>🌐 Website: www.nivto.com</li>
+            </ul>
+            
+            <p style="margin-top: 30px;">Best regards,<br>
+            <strong>The NIVTO Team</strong></p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated email. Please do not reply directly to this message.</p>
+            <p>NIVTO Staff Manager | Time Clock & Payroll Management System</p>
+            <p>© 2026 Daws Projects. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+}
+
+// ============================================================================
+// PAYMENT ROUTES
+// ============================================================================
+
+// Payment initiation page
+app.get('/', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>NIVTO Staff Manager - Subscribe</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script>
+            <style>
+                body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                       min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; }
+                .container { background: white; padding: 40px; border-radius: 15px; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); width: 100%; }
+                h1 { color: #667eea; margin-top: 0; }
+                .plan { border: 2px solid #ddd; padding: 20px; margin: 10px 0; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+                .plan:hover { border-color: #667eea; background: #f8f9fa; }
+                .plan input[type="radio"]:checked + .plan-content { border-color: #667eea; }
+                .plan-content { display: flex; justify-content: space-between; align-items: center; }
+                .price { font-size: 32px; font-weight: bold; color: #667eea; }
+                button { width: 100%; padding: 15px; background: #667eea; color: white; border: none;
+                        border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+                button:hover { background: #5568d3; }
+                button:disabled { background: #ccc; cursor: not-allowed; }
+                input[type="text"], input[type="email"], input[type="tel"] { 
+                    width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; 
+                    border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+                input:focus { border-color: #667eea; outline: none; }
+                .features { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                .features li { margin: 8px 0; }
+                .error { color: #e74c3c; padding: 10px; background: #ffebee; border-radius: 5px; margin: 10px 0; display: none; }
+                .loading { text-align: center; padding: 20px; }
+                .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; 
+                          width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🕐 NIVTO Staff Manager</h1>
+                <p>Subscribe to get access to both Windows and Android apps</p>
+                
+                <div class="features">
+                    <strong>What's Included:</strong>
+                    <ul style="padding-left: 20px;">
+                        <li>✅ Windows Desktop App</li>
+                        <li>✅ Android Time Clock App</li>
+                        <li>✅ Unlimited Employees</li>
+                        <li>✅ Automatic Updates</li>
+                        <li>✅ 5-Day Free Trial</li>
+                    </ul>
+                </div>
+                
+                <form id="paymentForm">
+                    <h3>Select Your Plan:</h3>
+                    
+                    <label class="plan">
+                        <input type="radio" name="plan" value="monthly" data-amount="34900" checked> 
+                        <div class="plan-content">
+                            <strong>Monthly</strong>
+                            <span class="price">R349</span>
+                        </div>
+                    </label>
+                    
+                    <label class="plan">
+                        <input type="radio" name="plan" value="quarterly" data-amount="94700"> 
+                        <div class="plan-content">
+                            <strong>3 Months</strong>
+                            <span class="price">R947</span>
+                        </div>
+                        <small style="color: #27ae60;">Save 10%</small>
+                    </label>
+                    
+                    <label class="plan">
+                        <input type="radio" name="plan" value="annual" data-amount="358800"> 
+                        <div class="plan-content">
+                            <strong>Annual</strong>
+                            <span class="price">R3,588</span>
+                        </div>
+                        <small style="color: #27ae60;">Save 15%</small>
+                    </label>
+                    
+                    <h3>Your Details:</h3>
+                    <input type="text" id="name" name="name" placeholder="Full Name" required>
+                    <input type="email" id="email" name="email" placeholder="Email Address" required>
+                    <input type="tel" id="phone" name="phone" placeholder="Phone Number (e.g., 0743532291)" required>
+                    
+                    <div class="error" id="errorMessage"></div>
+                    
+                    <button type="submit" id="submitBtn">🔒 Pay Securely with Yoco</button>
+                </form>
+                
+                <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+                    Secure payment powered by Yoco 🔒<br>
+                    📞 Questions? Call 074 353 2291
+                </p>
+            </div>
+            
+            <script>
+                const yoco = new window.YocoSDK({
+                    publicKey: '${CONFIG.YOCO.PUBLIC_KEY}'
+                });
+                
+                const form = document.getElementById('paymentForm');
+                const submitBtn = document.getElementById('submitBtn');
+                const errorMessage = document.getElementById('errorMessage');
+                
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    // Get form values
+                    const name = document.getElementById('name').value;
+                    const email = document.getElementById('email').value;
+                    const phone = document.getElementById('phone').value;
+                    const selectedPlan = document.querySelector('input[name="plan"]:checked');
+                    const amount = parseInt(selectedPlan.dataset.amount);
+                    const plan = selectedPlan.value;
+                    
+                    // Disable button and show loading
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<div class="spinner"></div>';
+                    errorMessage.style.display = 'none';
+                    
+                    try {
+                        // Create Yoco payment popup
+                        yoco.showPopup({
+                            amountInCents: amount,
+                            currency: 'ZAR',
+                            name: 'NIVTO Staff Manager',
+                            description: \`\${selectedPlan.value.charAt(0).toUpperCase() + selectedPlan.value.slice(1)} Subscription\`,
+                            metadata: {
+                                customerName: name,
+                                customerEmail: email,
+                                customerPhone: phone,
+                                plan: plan
+                            },
+                            callback: function (result) {
+                                if (result.error) {
+                                    errorMessage.textContent = result.error.message;
+                                    errorMessage.style.display = 'block';
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = '🔒 Pay Securely with Yoco';
+                                } else {
+                                    // Payment successful - send to server
+                                    fetch('/process-payment', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            token: result.id,
+                                            name: name,
+                                            email: email,
+                                            phone: phone,
+                                            plan: plan,
+                                            amount: amount
+                                        })
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            window.location.href = '/payment-success?email=' + encodeURIComponent(email);
+                                        } else {
+                                            throw new Error(data.message || 'Payment processing failed');
+                                        }
+                                    })
+                                    .catch(err => {
+                                        errorMessage.textContent = err.message;
+                                        errorMessage.style.display = 'block';
+                                        submitBtn.disabled = false;
+                                        submitBtn.innerHTML = '🔒 Pay Securely with Yoco';
+                                    });
+                                }
+                            }
+                        });
+                    } catch (error) {
+                        errorMessage.textContent = error.message;
+                        errorMessage.style.display = 'block';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '🔒 Pay Securely with Yoco';
+                    }
+                });
+            </script>
+        </body>
+        </html>
+    `);
+});
+
+// Process Yoco payment
+app.post('/process-payment', async (req, res) => {
+    const { token, name, email, phone, plan, amount } = req.body;
+    
+    console.log('Processing Yoco payment:', { email, plan, amount });
+    
+    try {
+        // Determine duration based on plan
+        let days, planName;
+        switch(plan) {
+            case 'monthly':
+                days = 30;
+                planName = 'Monthly Subscription';
+                break;
+            case 'quarterly':
+                days = 90;
+                planName = '3-Month Subscription';
+                break;
+            case 'annual':
+                days = 365;
+                planName = 'Annual Subscription';
+                break;
+            default:
+                return res.status(400).json({ success: false, message: 'Invalid plan' });
+        }
+        
+        // Charge the payment with Yoco
+        const https = require('https');
+        const chargeData = JSON.stringify({
+            token: token,
+            amountInCents: amount,
+            currency: 'ZAR',
+            metadata: {
+                customerName: name,
+                customerEmail: email,
+                customerPhone: phone,
+                plan: plan,
+                planName: planName,
+                days: days
+            }
+        });
+        
+        const options = {
+            hostname: 'online.yoco.com',
+            port: 443,
+            path: '/v1/charges/',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': chargeData.length,
+                'Authorization': `Bearer ${CONFIG.YOCO.SECRET_KEY}`
+            }
+        };
+        
+        const chargePromise = new Promise((resolve, reject) => {
+            const request = https.request(options, (response) => {
+                let data = '';
+                response.on('data', (chunk) => { data += chunk; });
+                response.on('end', () => {
+                    try {
+                        const result = JSON.parse(data);
+                        if (response.statusCode === 201) {
+                            resolve(result);
+                        } else {
+                            reject(new Error(result.message || 'Payment failed'));
+                        }
+                    } catch (e) {
+                        reject(new Error('Invalid response from payment gateway'));
+                    }
+                });
+            });
+            
+            request.on('error', (error) => reject(error));
+            request.write(chargeData);
+            request.end();
+        });
+        
+        const charge = await chargePromise;
+        console.log('Yoco charge successful:', charge.id);
+        
+        // Generate license key
+        const licenseKey = generateSubscriptionKey(days);
+        
+        // Calculate expiry date
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + days);
+        const expiryStr = expiryDate.toLocaleDateString('en-ZA');
+        
+        // Send email with license key
+        await sendLicenseEmail(email, name, licenseKey, expiryStr, planName);
+        
+        // Log successful payment
+        console.log(`Payment processed: ${email} - ${licenseKey}`);
+        
+        // TODO: Store in database for record keeping
+        // await db.insertLicense({ email, licenseKey, expiryDate, customerName: name, chargeId: charge.id });
+        
+        res.json({ 
+            success: true, 
+            message: 'Payment successful',
+            licenseKey: licenseKey 
+        });
+        
+    } catch (error) {
+        console.error('Payment processing error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Payment processing failed' 
+        });
+    }
+});
+
+// Yoco webhook handler (for recurring payments/subscriptions)
+app.post('/webhook/yoco', async (req, res) => {
+    
+    // Determine amount and duration based on plan
+    let amount, days, planName;
+    switch(plan) {
+        case 'monthly':
+            amount = CONFIG.PRICING.MONTHLY;
+            days = 30;
+            planName = 'Monthly Subscription';
+            break;
+        case 'quarterly':
+            amount = CONFIG.PRICING.QUARTERLY;
+            days = 90;
+            planName = '3-Month Subscription';
+            break;
+        case 'annual':
+            amount = CONFIG.PRICING.ANNUAL;
+            days = 365;
+            planName = 'Annual Subscription';
+            break;
+        default:
+            return res.status(400).send('Invalid plan');
+    }
+    
+    // Create PayFast payment data
+    const paymentData = {
+        merchant_id: CONFIG.PAYFAST.MERCHANT_ID,
+        merchant_key: CONFIG.PAYFAST.MERCHANT_KEY,
+        return_url: `${CONFIG.BASE_URL}/payment-success`,
+        cancel_url: `${CONFIG.BASE_URL}/payment-cancelled`,
+        notify_url: `${CONFIG.BASE_URL}/webhook/payfast`,
+        
+        // Customer details
+        name_first: name.split(' ')[0],
+        name_last: name.split(' ').slice(1).join(' ') || name,
+        email_address: email,
+        cell_number: phone,
+        
+        // Transaction details
+        m_payment_id: Date.now().toString(),
+        amount: amount.toFixed(2),
+        item_name: planName,
+        item_description: `NIVTO Staff Manager - ${planName}`,
+        
+        // Custom fields (to pass data through)
+        custom_int1: days,
+        custom_str1: email
+    };
+    
+    // Generate signature
+    const signature = generatePayFastSignature(paymentData);
+    paymentData.signature = signature;
+    
+    // Build PayFast URL
+    const payfastUrl = CONFIG.PAYFAST.SANDBOX 
+        ? 'https://sandbox.payfast.co.za/eng/process'
+        : 'https://www.payfast.co.za/eng/process';
+    
+    // Create form HTML
+    const formHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Redirecting to PayFast...</title>
+            <style>
+                body { font-family: Arial; text-align: center; padding: 50px; 
+                       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+                .card { background: white; padding: 40px; border-radius: 15px; 
+                        max-width: 400px; margin: 0 auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+                .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea;
+                          border-radius: 50%; width: 50px; height: 50px; 
+                          animation: spin 1s linear infinite; margin: 20px auto; }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h2>Redirecting to PayFast...</h2>
+                <div class="spinner"></div>
+                <p>Please wait while we redirect you to complete your payment securely.</p>
+                <form id="paymentForm" action="${payfastUrl}" method="POST">
+                    ${Object.keys(paymentData).map(key => 
+   Yoco webhook handler (for recurring payments/subscriptions)
+app.post('/webhook/yoco', async (req, res) => {
+    console.log('Yoco webhook received:', req.body);
+    
+    try {
+        // Yoco sends webhooks for various events
+        const event = req.body;
+        
+        if (event.type === 'payment.succeeded' || event.type === 'charge.succeeded') {
+            const charge = event.payload || event;
+            const metadata = charge.metadata || {};
+            
+            const email = metadata.customerEmail;
+            const days = parseInt(metadata.days) || 30;
+            const customerName = metadata.customerName;
+            const planName = metadata.planName || 'Subscription';
+            
+            if (!email) {
+                console.error('No email in webhook metadata');
+                return res.status(400).send('Missing email');
+            }
+            
+            // Generate license key
+            const licenseKey = generateSubscriptionKey(days);
+            
+            // Calculate expiry date
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + days);
+            const expiryStr = expiryDate.toLocaleDateString('en-ZA');
+            
+            // Send email with license key
+            await sendLicenseEmail(email, customerName, licenseKey, expiryStr, planName);
+            
+            // Log successful payment
+            console.log(`Payment processed: ${email} - ${licenseKey}`);
+            
+            // TODO: Store in database for record keeping
+            // await db.insertLicense({ email, licenseKey, expiryDate, customerName, chargeId: charge.id });
+        }
+        
+        res.status(200).json({ received: true }w Date();
+            expiryDate.setDate(expiryDate.getDate() + days);
+            const expiryStr = expiryDate.toLocaleDateString('en-ZA');
+            
+            // Send email with license key
+    const email = req.query.email || '';
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Payment Successful!</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                body { font-family: Arial; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                       min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+                .card { background: white; padding: 40px; border-radius: 15px; max-width: 500px; text-align: center; 
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+                .success-icon { font-size: 80px; color: #27ae60; animation: bounce 1s; }
+                @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+                h1 { color: #27ae60; margin: 20px 0; }
+                .info-box { background: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+                .info-box strong { color: #27ae60; }
+                button { padding: 15px 30px; background: #667eea; color: white; border: none;
+                        border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; 
+                        transition: background 0.3s; }
+                button:hover { background: #5568d3; }
+                .email-sent { color: #666; font-size: 14px; margin: 10px 0; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <div class="success-icon">✅</div>
+                <h1>Payment Successful!</h1>
+                <p><strong>Thank you for subscribing to NIVTO Staff Manager!</strong></p>
+                
+                <div class="info-box">
+                    <strong>📧 Check Your Email</strong>
+                    <p style="margin: 10px 0 0 0;">Your license key has been sent to:</p>
+                    <p style="margin: 5px 0; font-size: 16px;"><strong>${email || 'your email address'}</strong></p>
+                </div>
+                
+                <div class="email-sent">
+                    <p>⏱️ <strong>License key delivered within seconds</strong></p>
+                    <p>📱 Works on both Windows Desktop and Android apps</p>
+                    <p>🚀 5-day free trial included</p>
+                </div>
+                
+                <p style="color: #999; font-size: 13px; margin-top: 20px;">
+                    💡 Tip: Check your spam folder if you don't see the email<br>
+                    📞 Need help? Call 074 353 2291
+                </p>
+                
+            <title>Payment Successful!</title>
+            <style>
+                body { font-family: Arial; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                       min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                .card { background: white; padding: 40px; border-radius: 15px; max-width: 500px; text-align: center; }
+                .success-icon { font-size: 80px; color: #27ae60; }
+                h1 { color: #27ae60; }
+                button { padding: 15px 30px; background: #667eea; color: white; border: none;
+                        border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <div class="success-icon">✅</div>               button { padding: 15px 30px; background: #667eea; color: white; border: none;
+                        border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <div class="cancel-icon">❌</div>
+                <h1>Payment Cancelled</h1>
+                <p>Your payment was not completed.</p>
+                <p>If you encountered any issues, please contact us at 074 353 2291.</p>
+                <button onclick="window.location.href='${CONFIG.BASE_URL}'">Try Again</button>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+function generatePayFastSignature(data) {
+    // Remove signature if present
+    const { signature, ...dataToSign } = data;
+    
+    // Create parameter string
+    let paramString = '';
+    for (const key of Object.keys(dataToSign).sort()) {
+        if (dataToSign[key] !== '') {
+            paramString += `${key}=${encodeURIComponent(dataToSign[key]).replace(/%20/g, '+')}&`;
+        }
+    }
+    
+    // Remove trailing ampersand
+    paramString = paramString.slice(0, -1);
+    
+    // Add passphrase if in production
+    if (!CONFIG.PAYFAST.SANDBOX && CONFIG.PAYFAST.PASSPHRASE) {
+        paramString += `&passphrase=${encodeURIComponent(CONFIG.PAYFAST.PASSPHRASE)}`;
+    }
+    
+    // Generate MD5 signature
+    return crypto.createHash('md5').update(paramString).digest('hex');
+}
+
+async function sendLicenseEmail(recipientEmail, customerName, licenseKey, expiryDate, planName) {
+    const htmlContent = getLicenseEmailHtml(customerName, licenseKey, expiryDate, planName);
+    
+    const mailOptions = {
+        from: CONFIG.EMAIL.FROM,
+        to: recipientEmail,
+        subject: '🎉 Your NIVTO Staff Manager License Key',
+        html: htmlContent,
+        text: `
+Hello ${customerName},
+
+Your NIVTO Staff Manager license key: ${licenseKey}
+Valid until: ${expiryDate}
+
+To activate:
+1. Install NIVTO Staff Manager
+2. Enter your license key when prompted (Yoco Integration)');
+    console.log('='.repeat(60));
+    console.log(`Server running on port ${CONFIG.PORT}`);
+    console.log(`Environment: ${CONFIG.YOCO.MODE.toUpperCase()}`);
+    console.log(`Base URL: ${CONFIG.BASE_URL}`);
+    console.log(`Payment Provider: Yoco`);
+    console.log('');
+    console.log('Webhook URL for Yoco (optional):');
+    console.log(`  ${CONFIG.BASE_URL}/webhook/yoco`);
+    console.log('');
+    console.log('Payment page:');
+    console.log(`  ${CONFIG.BASE_URL}/`);
+    console.log('');
+    console.log('⚠️  Make sure YOCO_PUBLIC_KEY and YOCO_SECRET_KEY are set in .env'ions);
+}
+
+// ============================================================================
+// START SERVER
+// ============================================================================
+
+app.listen(CONFIG.PORT, () => {
+    console.log('='.repeat(60));
+    console.log('NIVTO Payment Server Started');
+    console.log('='.repeat(60));
+    console.log(`Server running on port ${CONFIG.PORT}`);
+    console.log(`Environment: ${CONFIG.PAYFAST.SANDBOX ? 'SANDBOX' : 'PRODUCTION'}`);
+    console.log(`Base URL: ${CONFIG.BASE_URL}`);
+    console.log('');
+    console.log('Webhook URL for PayFast:');
+    console.log(`  ${CONFIG.BASE_URL}/webhook/payfast`);
+    console.log('');
+    console.log('Payment page:');
+    console.log(`  ${CONFIG.BASE_URL}/`);
+    console.log('='.repeat(60));
+});
+
+module.exports = app;

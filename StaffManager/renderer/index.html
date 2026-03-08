@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>📊 NIVTO Staff Management Dashboard</h1>
+      <p style="color: var(--text-secondary); margin: 0;">Manage your workforce efficiently</p>
+    </div>
+    <button class="btn-outline" id="logoutBtn" onclick="logout()" title="Logout" style="display: none;">
+      🚪 Logout
+    </button>
+  </div>
+
+  <!-- License Activation Banner (prominent when needed) -->
+  <div id="licenseBanner" style="display: none; max-height: 200px; overflow-y: auto; overflow-x: hidden;"></div>
+  
+  <style>
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    #licenseBanner > div {
+      animation: slideDown 0.5s ease-out;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.02);
+      }
+    }
+    
+    #licenseBanner button {
+      transition: all 0.3s ease;
+    }
+    
+    #licenseBanner button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+    }
+    
+    #licenseBanner::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    #licenseBanner::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    #licenseBanner::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+    }
+    
+    #licenseBanner::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  </style>
+
+  <div class="dashboard-grid">
+    <div class="dashboard-card" onclick="navigate('staff.html')">
+      <div class="dashboard-card-icon">👥</div>
+      <h3>Staff Management</h3>
+      <p>Manage employee information, rates, and status</p>
+    </div>
+
+    <div class="dashboard-card" onclick="navigate('attendance.html')">
+      <div class="dashboard-card-icon">📅</div>
+      <h3>Attendance Tracking</h3>
+      <p>Record and manage daily attendance</p>
+    </div>
+
+    <div class="dashboard-card" onclick="navigate('shifts.html')">
+      <div class="dashboard-card-icon">🕐</div>
+      <h3>Shift Scheduler</h3>
+      <p>Weekly shift planning and scheduling</p>
+    </div>
+
+    <div class="dashboard-card" onclick="navigate('payout.html')">
+      <div class="dashboard-card-icon">💰</div>
+      <h3>Payout Calculator</h3>
+      <p>Calculate salaries with deductions</p>
+    </div>
+
+    <div class="dashboard-card" onclick="navigate('leave.html')">
+      <div class="dashboard-card-icon">🏖️</div>
+      <h3>Leave Management</h3>
+      <p>Track employee leave days and balances</p>
+    </div>
+
+    <div class="dashboard-card" onclick="navigate('sync-settings.html')">
+      <div class="dashboard-card-icon">🔄</div>
+      <h3>Android Sync</h3>
+      <p>Connect and sync with Android time clock app</p>
+    </div>
+
+    <div class="dashboard-card" onclick="navigate('settings.html')">
+      <div class="dashboard-card-icon">⚙️</div>
+      <h3>Settings</h3>
+      <p>Configure company details and preferences</p>
+    </div>
+  </div>
+</div>
+
+<script src="js/dashboard.js"></script>
+<script>
+// Call init from dashboard.js - it handles both license check and logout button
+</script>
+</body>
+</html>

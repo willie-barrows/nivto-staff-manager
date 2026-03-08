@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shift Scheduler - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🕐 Shift Scheduler</h1>
+    <button class="back-btn" onclick="location.href='index.html'">← Back to Dashboard</button>
+  </div>
+
+  <div class="card">
+    <div class="calendar-header">
+      <div class="calendar-navigation">
+        <button class="btn-outline" onclick="previousWeek()">← Previous</button>
+        <span class="week-info" id="weekInfo" style="font-size: 1.1rem; font-weight: 600;"></span>
+        <button class="btn-outline" onclick="nextWeek()">Next →</button>
+      </div>
+    </div>
+    
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+</div>
+
+<!-- Shift Entry Modal -->
+<div id="shiftModal" class="modal">
+  <div class="modal-content">
+    <h3 id="modalTitle">➕ Add Shift</h3>
+    <label>Employee
+      <select id="shiftEmployee"></select>
+    </label>
+    <label>Date
+      <input type="date" id="shiftDate">
+    </label>
+    <label>Start Time
+      <input type="time" id="shiftStart">
+    </label>
+    <label>End Time
+      <input type="time" id="shiftEnd">
+    </label>
+    <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-primary" onclick="saveShiftEntry()">Save Shift</button>
+      <button class="btn-outline" onclick="cancelShift()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/shifts.js"></script>
+</body>
+</html>

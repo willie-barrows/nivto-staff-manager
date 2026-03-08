@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIVTO - Facebook Post Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .generator-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input, select, textarea {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .template-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .template-btn {
+            padding: 12px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .template-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .download-section {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 NIVTO Facebook Post Generator</h1>
+
+        <div class="generator-section">
+            <h2>Quick Templates</h2>
+            <div class="template-buttons">
+                <button class="template-btn" onclick="loadTemplate('launch')">🎉 Launch Post</button>
+                <button class="template-btn" onclick="loadTemplate('pricing')">💰 Pricing Post</button>
+                <button class="template-btn" onclick="loadTemplate('feature')">✨ Feature Post</button>
+                <button class="template-btn" onclick="loadTemplate('problem')">😫 Problem Post</button>
+                <button class="template-btn" onclick="loadTemplate('mobile')">📱 Mobile App Post</button>
+                <button class="template-btn" onclick="loadTemplate('offer')">🎁 Special Offer</button>
+            </div>
+        </div>
+
+        <div class="generator-section">
+            <h2>Customize Your Post Image</h2>
+            
+            <div class="canvas-container">
+                <canvas id="postCanvas" width="1200" height="630"></canvas>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label>Background Style:</label>
+                    <select id="bgStyle" onchange="drawPost()">
+                        <option value="gradient">Purple Gradient</option>
+                        <option value="blue">Blue Gradient</option>
+                        <option value="green">Green Gradient</option>
+                        <option value="orange">Orange Gradient</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Main Text:</label>
+                    <input type="text" id="mainText" value="Manage Your Staff Effortlessly" onchange="drawPost()">
+                </div>
+
+                <div class="control-group">
+                    <label>Subtext:</label>
+                    <input type="text" id="subText" value="Track Time • Calculate Payroll • Schedule Shifts" onchange="drawPost()">
+                </div>
+
+                <div class="control-group">
+                    <label>Call to Action:</label>
+                    <input type="text" id="ctaText" value="Download FREE - R349/month" onchange="drawPost()">
+                </div>
+
+                <div class="control-group">
+                    <label>Website URL:</label>
+                    <input type="text" id="urlText" value="nivto.netlify.app" onchange="drawPost()">
+                </div>
+
+                <div class="control-group">
+                    <label>Icon/Emoji:</label>
+                    <input type="text" id="iconText" value="🚀" onchange="drawPost()" maxlength="2">
+                </div>
+            </div>
+
+            <div class="download-section">
+                <button onclick="downloadImage('facebook')">⬇️ Download Facebook Post (1200x630)</button>
+                <button onclick="downloadImage('square')">⬇️ Download Square (1080x1080)</button>
+                <button onclick="downloadImage('story')">⬇️ Download Story (1080x1920)</button>
+            </div>
+        </div>
+
+        <div class="generator-section">
+            <h2>📝 Post Copy (Ready to Paste)</h2>
+            <div class="control-group">
+                <textarea id="postCopy" rows="10"></textarea>
+            </div>
+            <button onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('postCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const templates = {
+            launch: {
+                mainText: "NIVTO Staff Manager is LIVE! 🎉",
+                subText: "Complete HR Solution for SA Businesses",
+                ctaText: "Download FREE + 30-Day Trial",
+                urlText: "nivto.netlify.app",
+                iconText: "🚀",
+                postCopy: `🎉 INTRODUCING NIVTO STAFF MANAGER! 🎉
+
+Say goodbye to messy staff management! ✋
+
+NIVTO makes it easy to:
+✅ Track employee time & attendance
+✅ Calculate payroll automatically
+✅ Schedule shifts effortlessly
+✅ Generate instant reports
+
+💰 R349/month for UNLIMITED staff!
+🎁 FREE download + 30-day trial
+
+👉 https://nivto.netlify.app
+📞 074 353 2291
+
+#StaffManagement #SABusiness #SouthAfrica`
+            },
+            pricing: {
+                mainText: "ONE FLAT FEE. Unlimited Staff.",
+                subText: "R349/month • No Hidden Costs • All Features Included",
+                ctaText: "50% Less Than Competitors",
+                urlText: "nivto.netlify.app",
+                iconText: "💰",
+                postCopy: `💰 STOP PAYING PER EMPLOYEE!
+
+Most systems charge R50-80 PER STAFF MEMBER.
+With 10 employees, that's R500-800/month! 😱
+
+NIVTO: ONE FLAT FEE
+✨ R349/month for UNLIMITED STAFF
+✨ Desktop + Mobile apps included
+✨ All features, no hidden costs
+
+Try FREE: https://nivto.netlify.app
+
+#AffordableSoftware #SmallBusinessSA`
+            },
+            feature: {
+                mainText: "Payroll Done in 10 Minutes ⏱️",
+                subText: "Automatic Calculations • Overtime Tracking • Instant Reports",
+                ctaText: "Stop Spending Hours on Payroll",
+                urlText: "nivto.netlify.app",
+                iconText: "✨",
+                postCopy: `⏰ HOW LONG DOES PAYROLL TAKE YOU?
+
+Most businesses: 4-8 hours per month 😰
+With NIVTO: 10 minutes ⚡
+
+✅ Automatic time tracking
+✅ Overtime calculated instantly
+✅ One-click payroll reports
+✅ Export to Excel/PDF
+
+Download FREE: https://nivto.netlify.app
+R349/month | Unlimited staff
+
+#PayrollSoftware #TimeTracking #SABusiness`
+            },
+            problem: {
+                mainText: "Still Using Paper Timesheets? 📝",
+                subText: "Lost Records • Disputes • Wasted Time",
+                ctaText: "There's a Better Way!",
+                urlText: "nivto.netlify.app",
+                iconText: "😫",
+                postCopy: `❌ "My staff said they clocked in but there's no record!"
+❌ "I can't remember who worked overtime!"
+❌ "Payroll takes me 2 days every month!"
+
+Sound familiar? 😩
+
+NIVTO tracks EVERYTHING automatically:
+✅ Accurate clock-in/out times
+✅ Overtime calculated instantly
+✅ Payroll done in minutes
+
+Download now: https://nivto.netlify.app
+
+#StaffManagement #SmallBusiness`
+            },
+            mobile: {
+                mainText: "Staff Clock In From Their Phones 📱",
+                subText: "Android App • Real-Time Sync • No More Disputes",
+                ctaText: "Desktop for You, Mobile for Them",
+                urlText: "nivto.netlify.app",
+                iconText: "📱",
+                postCopy: `📱 STAFF CLOCK IN FROM THEIR PHONES!
+
+NIVTO Android App lets employees:
+• Clock in/out with one tap
+• View their schedules
+• Check hours worked
+• Request time off
+
+You see everything in real-time on desktop! 💻
+
+Download both apps FREE:
+👉 https://nivto.netlify.app
+
+#MobileTimeClock #AttendanceTracking`
+            },
+            offer: {
+                mainText: "LAUNCH SPECIAL: 50% OFF! 🎁",
+                subText: "First 100 Customers Only",
+                ctaText: "R174.50/month for 3 Months",
+                urlText: "nivto.netlify.app",
+                iconText: "🎉",
+                postCopy: `🎉 LAUNCH SPECIAL! 🎉
+
+First 100 customers get:
+✨ 50% OFF first 3 months
+✨ Free setup support
+✨ Priority email support
+
+Regular: R349/month
+NOW: R174.50/month
+
+Use code: LAUNCH50
+Download: https://nivto.netlify.app
+
+⏰ Ends March 31st!
+
+#SpecialOffer #StaffManagement #SABusiness`
+            }
+        };
+
+        function loadTemplate(name) {
+            const template = templates[name];
+            document.getElementById('mainText').value = template.mainText;
+            document.getElementById('subText').value = template.subText;
+            document.getElementById('ctaText').value = template.ctaText;
+            document.getElementById('urlText').value = template.urlText;
+            document.getElementById('iconText').value = template.iconText;
+            document.getElementById('postCopy').value = template.postCopy;
+            drawPost();
+        }
+
+        function drawPost() {
+            const bgStyle = document.getElementById('bgStyle').value;
+            const mainText = document.getElementById('mainText').value;
+            const subText = document.getElementById('subText').value;
+            const ctaText = document.getElementById('ctaText').value;
+            const urlText = document.getElementById('urlText').value;
+            const iconText = document.getElementById('iconText').value;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Background gradient
+            let gradient;
+            switch(bgStyle) {
+                case 'gradient':
+                    gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                    gradient.addColorStop(0, '#667eea');
+                    gradient.addColorStop(1, '#764ba2');
+                    break;
+                case 'blue':
+                    gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                    gradient.addColorStop(0, '#4facfe');
+                    gradient.addColorStop(1, '#00f2fe');
+                    break;
+                case 'green':
+                    gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                    gradient.addColorStop(0, '#43e97b');
+                    gradient.addColorStop(1, '#38f9d7');
+                    break;
+                case 'orange':
+                    gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                    gradient.addColorStop(0, '#fa709a');
+                    gradient.addColorStop(1, '#fee140');
+                    break;
+            }
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Icon/Emoji
+            ctx.font = 'bold 180px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(iconText, canvas.width / 2, 220);
+
+            // Main text
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 64px Arial';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 10;
+            
+            const mainLines = wrapText(ctx, mainText, canvas.width - 100, 64);
+            let y = 320;
+            mainLines.forEach(line => {
+                ctx.fillText(line, canvas.width / 2, y);
+                y += 70;
+            });
+
+            // Subtext
+            ctx.font = '32px Arial';
+            ctx.fillStyle = 'rgba(255,255,255,0.95)';
+            const subLines = wrapText(ctx, subText, canvas.width - 100, 32);
+            y += 20;
+            subLines.forEach(line => {
+                ctx.fillText(line, canvas.width / 2, y);
+                y += 40;
+            });
+
+            // CTA Box
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillRect(canvas.width / 2 - 400, y + 10, 800, 80);
+            
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 36px Arial';
+            ctx.fillText(ctaText, canvas.width / 2, y + 60);
+
+            // URL
+            ctx.font = 'bold 28px Arial';
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillText(urlText, canvas.width / 2, y + 130);
+        }
+
+        function wrapText(ctx, text, maxWidth, fontSize) {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                const word = words[i];
+                const width = ctx.measureText(currentLine + " " + word).width;
+                if (width < maxWidth) {
+                    currentLine += " " + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        function downloadImage(type) {
+            let width, height, name;
+            
+            switch(type) {
+                case 'facebook':
+                    width = 1200;
+                    height = 630;
+                    name = 'nivto-facebook-post.png';
+                    break;
+                case 'square':
+                    width = 1080;
+                    height = 1080;
+                    name = 'nivto-instagram-post.png';
+                    break;
+                case 'story':
+                    width = 1080;
+                    height = 1920;
+                    name = 'nivto-story.png';
+                    break;
+            }
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // Redraw on temp canvas with new dimensions
+            const originalWidth = canvas.width;
+            const originalHeight = canvas.height;
+            
+            tempCtx.drawImage(canvas, 0, 0, originalWidth, originalHeight, 0, 0, width, height);
+
+            // Download
+            const link = document.createElement('a');
+            link.download = name;
+            link.href = tempCanvas.toDataURL();
+            link.click();
+        }
+
+        function copyToClipboard() {
+            const copyText = document.getElementById('postCopy');
+            copyText.select();
+            document.execCommand('copy');
+            alert('✅ Post copied to clipboard! Ready to paste on Facebook.');
+        }
+
+        // Load default template on page load
+        window.onload = () => loadTemplate('launch');
+    </script>
+</body>
+</html>

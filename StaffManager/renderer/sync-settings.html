@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sync Settings - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🔄 Android-Windows Sync</h1>
+    <button class="back-btn" onclick="location.href='index.html'">← Back to Dashboard</button>
+  </div>
+
+  <!-- Server Status Card -->
+  <div class="card" style="max-width: 800px; margin: 0 auto 2rem;">
+    <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 1.5rem; border-radius: 8px 8px 0 0; color: white;">
+      <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem;">📡 Server Status</h3>
+      <div id="serverStatus" style="margin-top: 0.75rem;">
+        <p id="serverStatusText" style="margin: 0; font-size: 1rem;">Checking...</p>
+        <p id="serverUrl" style="margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.95;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pairing Card -->
+  <div class="card" style="max-width: 800px; margin: 0 auto 2rem;">
+    <div class="card-header">
+      <h2 class="card-title">📱 Pair Android Device</h2>
+    </div>
+    <div class="card-body">
+      <p style="color: #666; margin-bottom: 1rem;">
+        Connect your Android time clock app to this Windows desktop application using a QR code. 
+        Make sure both devices are on the same WiFi network.
+      </p>
+      
+      <div style="text-align: center; padding: 2rem;">
+        <div id="qrCodeContainer" style="display: none;">
+          <img id="qrCodeImage" alt="Pairing QR Code" style="max-width: 300px; border: 2px solid #ddd; border-radius: 8px; padding: 1rem; background: white;">
+          <p style="margin-top: 1rem; color: #666;">Scan this code with your Android app</p>
+          <p id="qrCodeExpiry" style="color: #dc3545; font-size: 0.875rem; margin-top: 0.5rem;"></p>
+        </div>
+        
+        <div id="qrCodePlaceholder" style="display: block;">
+          <div style="width: 300px; height: 300px; margin: 0 auto; background: #f5f5f5; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <span style="color: #999; font-size: 1rem;">Click "Generate QR Code" to start pairing</span>
+          </div>
+        </div>
+        
+        <div style="margin-top: 1.5rem;">
+          <button id="generateQRBtn" class="btn-primary" onclick="generateQRCode()">
+            🔐 Generate QR Code
+          </button>
+        </div>
+      </div>
+
+      <div style="background: #e3f2fd; border-left: 4px solid #2196F3; padding: 1rem; margin-top: 1rem; border-radius: 4px;">
+        <h4 style="margin: 0 0 0.5rem 0; color: #1976d2; font-size: 0.95rem;">📘 How to Pair:</h4>
+        <ol style="margin: 0; padding-left: 1.5rem; color: #333; font-size: 0.9rem; line-height: 1.6;">
+          <li>Click "Generate QR Code" button above</li>
+          <li>Open NIVTO Time Clock app on your Android device</li>
+          <li>Tap "Sync Settings" or "Pair with Windows"</li>
+          <li>Scan the QR code displayed here</li>
+          <li>Wait for "Paired Successfully" confirmation</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paired Devices Card -->
+  <div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-header">
+      <h2 class="card-title">📲 Paired Devices</h2>
+    </div>
+    <div class="card-body">
+      <div id="pairedDevicesContainer">
+        <div style="text-align: center; padding: 2rem; color: #999;">
+          <p>No devices paired yet</p>
+        </div>
+      </div>
+      
+      <div style="margin-top: 1rem;">
+        <button class="btn-outline" onclick="refreshDevices()">
+          🔄 Refresh List
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/sync-settings.js"></script>
+</body>
+</html>

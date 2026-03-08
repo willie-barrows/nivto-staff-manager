@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payout Calculator - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>💰 Payout Calculator</h1>
+    <button class="back-btn" onclick="location.href='index.html'">← Back to Dashboard</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Payroll Period</h2>
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <input type="date" id="startDate" style="padding: 0.5rem;">
+        <span>to</span>
+        <input type="date" id="endDate" style="padding: 0.5rem;">
+        <button class="btn-primary" onclick="calculatePayouts()">Calculate Payouts</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-section">
+    <h3 style="margin-bottom: 1rem;">📊 Summary Overview</h3>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="summary-label">Total Hours</div>
+        <div class="summary-value" id="totalHours">0</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Gross Pay</div>
+        <div class="summary-value" id="totalGross">R 0.00</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Total Deductions</div>
+        <div class="summary-value" id="totalDeductions">R 0.00</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Net Pay</div>
+        <div class="summary-value" id="totalNet">R 0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Employee Payouts</h2>
+      <button class="btn-success" onclick="exportPayoutPDF()">📄 Open PDF Report</button>
+    </div>
+    <div class="card-body">
+      <table id="payoutTable">
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Hours/Days</th>
+            <th>Rate</th>
+            <th>Type</th>
+            <th>Gross</th>
+            <th>UIF</th>
+            <th>PAYE</th>
+            <th>Tax</th>
+            <th>Net Pay</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="js/payout.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📊 Reports & Exports</h1>
+    <button class="back-btn" onclick="location.href='index.html'">← Back to Dashboard</button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+    <div class="card" style="cursor: pointer;" onclick="window.api.loadPage('attendance')">
+      <div style="text-align: center; padding: 1rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📅</div>
+        <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">Daily Attendance</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">
+          View and export attendance records
+        </p>
+        <button class="btn-primary" style="width: 100%;" onclick="event.stopPropagation(); window.api.loadPage('attendance')">
+          🔍 View Attendance
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="cursor: pointer;" onclick="window.api.loadPage('shifts')">
+      <div style="text-align: center; padding: 1rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🕐</div>
+        <h3 style="color: var(--success-color); margin-bottom: 0.5rem;">Shift Schedule</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">
+          View weekly shift schedules
+        </p>
+        <button class="btn-success" style="width: 100%;" onclick="event.stopPropagation(); window.api.loadPage('shifts')">
+          🔍 View Shifts
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="cursor: pointer;" onclick="window.api.loadPage('payout')">
+      <div style="text-align: center; padding: 1rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">💰</div>
+        <h3 style="color: var(--warning-color); margin-bottom: 0.5rem;">Payout Reports</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem;">
+          View and export payout calculations
+        </p>
+        <button class="btn-secondary" style="width: 100%; background: var(--warning-color);" onclick="event.stopPropagation(); window.api.loadPage('payout')">
+          🔍 View Payouts
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+      <h2 class="card-title">📝 Quick Access</h2>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-info">
+        <strong>Tip:</strong> Click on any card above to open the respective module directly. 
+        Each module has export functionality for CSV and PDF reports.
+      </div>
+      <div style="margin-top: 1rem;">
+        <h4 style="margin-bottom: 0.5rem;">Available Reports:</h4>
+        <ul style="color: var(--text-secondary); line-height: 1.8;">
+          <li><strong>Attendance:</strong> Daily records with CSV export for Excel</li>
+          <li><strong>Shifts:</strong> Weekly schedules with CSV export</li>
+          <li><strong>Payouts:</strong> Salary calculations with PDF and CSV export</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/reports.js"></script>
+</body>
+</html>

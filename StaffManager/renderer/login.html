@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="card" style="max-width: 500px; margin: 8rem auto;">
+    <div class="card-header" style="text-align: center; border: none;">
+      <div style="width: 100%;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🔐</div>
+        <h1 style="color: var(--primary-color); margin-bottom: 0.5rem;">Welcome Back</h1>
+        <p style="color: var(--text-secondary);" id="companyName"></p>
+      </div>
+    </div>
+    <div class="card-body">
+      <form id="loginForm">
+        <label>
+          Admin Password
+          <input type="password" id="password" placeholder="Enter your password" required autofocus>
+        </label>
+        
+        <div style="display: flex; align-items: center; margin-top: 1rem;">
+          <input type="checkbox" id="rememberMe" checked>
+          <label for="rememberMe" style="margin: 0 0 0 0.5rem; cursor: pointer;">Remember me (24 hours)</label>
+        </div>
+        
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 0.875rem;">
+          🔓 Sign In
+        </button>
+        
+        <div id="errorMsg" class="alert alert-danger" style="display: none; margin-top: 1rem;"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/login.js"></script>
+</body>
+</html>

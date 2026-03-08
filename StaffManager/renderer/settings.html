@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings - NIVTO Staff Management</title>
+<link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>⚙️ Settings</h1>
+    <div style="display: flex; gap: 0.75rem;">
+      <button class="btn-outline" id="logoutBtn" onclick="logout()" style="display: none;">🚪 Logout</button>
+      <button class="back-btn" onclick="location.href='index.html'">← Back to Dashboard</button>
+    </div>
+  </div>
+
+  <div class="card" style="max-width: 700px; margin: 0 auto;">
+    <!-- Subscription Status Section -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 8px 8px 0 0; color: white;">
+      <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem;">📋 License Status</h3>
+      <div id="subscriptionStatus" class="subscription-status">
+        <p id="licenseMessage" style="margin: 0; font-size: 1rem;">Loading...</p>
+        <div id="licenseDetails" style="margin-top: 0.75rem; font-size: 0.9rem; opacity: 0.95;"></div>
+      </div>
+      <div style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+        <button id="purchaseBtn" class="btn-primary" style="flex: 1; min-width: 150px; background: #28a745; border: none; font-weight: 600;" onclick="openPurchaseDialog()">
+          💳 Purchase Now - R349/month
+        </button>
+        <button id="manageLicenseBtn" class="btn-outline" style="flex: 1; min-width: 150px; background: white; color: #667eea; border: none;" onclick="openActivationHelp()">
+          🔑 Activate License Key
+        </button>
+      </div>
+    </div>
+
+    <div class="card-header">
+      <h2 class="card-title">Company & System Settings</h2>
+    </div>
+    <div class="card-body">
+      <form id="settingsForm">
+        <div style="display: grid; gap: 1.5rem;">
+          <div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary-color);">Company Information</h3>
+            <label>
+              Company Name
+              <input type="text" id="companyName" placeholder="Enter company name" required>
+            </label>
+            <label>
+              Address
+              <input type="text" id="address" placeholder="Company address">
+            </label>
+            <label>
+              Contact Info
+              <input type="text" id="contact" placeholder="Phone, email, or website">
+            </label>
+          </div>
+
+          <div style="border-top: 2px solid var(--border-color); padding-top: 1.5rem;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary-color);">Working Hours</h3>
+            <label>
+              Workday Start Time
+              <input type="time" id="workStart">
+            </label>
+            <label>
+              Workday End Time
+              <input type="time" id="workEnd">
+            </label>
+          </div>
+
+          <div style="border-top: 2px solid var(--border-color); padding-top: 1.5rem;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary-color);">Default Deductions</h3>
+            <label>
+              Default UIF Percentage (%)
+              <input type="number" id="defaultUIF" min="0" max="100" step="0.1" placeholder="1.0">
+            </label>
+            <label>
+              Default PAYE Percentage (%)
+              <input type="number" id="defaultPAYE" min="0" max="100" step="0.1" placeholder="0.0">
+            </label>
+            <label>
+              Default Tax Percentage (%)
+              <input type="number" id="defaultTax" min="0" max="100" step="0.1" placeholder="10.0">
+            </label>
+          </div>
+
+          <div style="border-top: 2px solid var(--border-color); padding-top: 1.5rem;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary-color);">Security</h3>
+            <label>
+              Admin Password (Desktop App)
+              <input type="password" id="adminPwd" placeholder="Leave blank to keep unchanged">
+            </label>
+            <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3498db;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                <input type="checkbox" id="enableMobilePin" style="width: auto; margin: 0;">
+                <span style="font-weight: 600; color: var(--text-primary);">Set Default PIN for Mobile App</span>
+              </label>
+              <div id="mobilePinSection" style="display: none; margin-top: 0.75rem;">
+                <label style="margin-bottom: 0.5rem;">
+                  Mobile Management PIN (4-6 digits)
+                  <input type="text" id="mobilePIN" placeholder="Enter 4-6 digit PIN" maxlength="6" pattern="[0-9]*">
+                </label>
+                <label style="margin: 0;">
+                  Confirm PIN
+                  <input type="text" id="mobilePINConfirm" placeholder="Confirm PIN" maxlength="6" pattern="[0-9]*">
+                </label>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.5;">
+                  ℹ️ This PIN will be saved and can be used to set up management access on the mobile app. You can also view and share it 
+                  when transferring staff data.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-top: 2px solid var(--border-color); padding-top: 1.5rem;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary-color);">Application Updates</h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f8f9fa; border-radius: 8px;">
+                <div>
+                  <div style="font-weight: 600; color: var(--text-primary);">Current Version</div>
+                  <div id="currentVersion" style="font-size: 1.5rem; color: var(--primary-color); margin-top: 0.25rem;">Loading...</div>
+                </div>
+                <button type="button" class="btn-outline" id="checkUpdatesBtn" onclick="checkForUpdates()">
+                  🔄 Check for Updates
+                </button>
+              </div>
+              <div id="updateStatus" style="display: none; padding: 1rem; border-radius: 8px; border-left: 4px solid #3498db;">
+                <div id="updateMessage" style="font-weight: 600; margin-bottom: 0.5rem;"></div>
+                <div id="updateDetails" style="font-size: 0.9rem; color: var(--text-secondary);"></div>
+                <div id="updateProgress" style="display: none; margin-top: 0.75rem;">
+                  <div style="background: #e0e0e0; border-radius: 10px; overflow: hidden; height: 8px;">
+                    <div id="progressBar" style="background: var(--primary-color); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                  </div>
+                  <div id="progressText" style="font-size: 0.85rem; margin-top: 0.5rem; text-align: center;"></div>
+                </div>
+                <div id="updateActions" style="display: none; margin-top: 1rem; display: flex; gap: 0.75rem;">
+                  <button type="button" class="btn-primary" id="downloadBtn" onclick="downloadUpdate()">
+                    ⬇️ Download Update
+                  </button>
+                  <button type="button" class="btn-success" id="installBtn" onclick="installUpdate()" style="display: none;">
+                    ✅ Install & Restart
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" style="width: 100%; padding: 0.875rem; margin-top: 1rem;">
+            💾 Save Settings
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/settings.js"></script>
+</body>
+</html>
