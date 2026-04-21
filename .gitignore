@@ -27,6 +27,7 @@ out/
 .externalNativeBuild
 .cxx
 *.apk
+!StaffManager/website/login.apk
 *.ap_
 *.dex
 *.class
