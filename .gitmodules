@@ -1,0 +1,3 @@
+[submodule "payment-server-deploy"]
+	path = payment-server-deploy
+	url = https://github.com/your-org/payment-server-deploy.git
