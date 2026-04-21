@@ -1,3 +1,0 @@
-[submodule "payment-server-deploy"]
-	path = payment-server-deploy
-	url = https://github.com/willie-barrows/nivto-staff-manager.git
