@@ -11,6 +11,7 @@ import com.nivto.timeclock.util.CsvHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
@@ -39,7 +40,10 @@ class ManagementViewModel(
     
     private fun loadStaffCount() {
         viewModelScope.launch {
-            _staffCount.value = repository.getActiveEmployeeCount()
+            // Observe live count from DB so it updates automatically after sync
+            repository.getAllActiveEmployees().map { it.size }.collect { count ->
+                _staffCount.value = count
+            }
         }
     }
     

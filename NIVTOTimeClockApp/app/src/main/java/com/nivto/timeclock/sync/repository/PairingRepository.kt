@@ -12,17 +12,7 @@ import androidx.security.crypto.MasterKey
  */
 class PairingRepository(context: Context) {
     
-    private val masterKey = MasterKey.Builder(context)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
-    
-    private val sharedPreferences: SharedPreferences = EncryptedSharedPreferences.create(
-        context,
-        PREFS_NAME,
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    private val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     
     companion object {
         private const val PREFS_NAME = "sync_pairing_prefs"

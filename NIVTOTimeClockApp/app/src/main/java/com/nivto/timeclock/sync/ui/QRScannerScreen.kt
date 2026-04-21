@@ -92,12 +92,20 @@ fun QRScannerScreen(
             try {
                 // Parse QR code data
                 val gson = Gson()
+                
+                // Show raw scanned data briefly for debugging
+                statusMessage = "Scanned: ${qrData.take(60)}..."
+                kotlinx.coroutines.delay(1500)
+                
                 val qrCodeData = gson.fromJson(qrData, QRCodeData::class.java)
                 
                 // Validate QR code data
                 if (qrCodeData.serverUrl.isBlank() || qrCodeData.pairingToken.isBlank()) {
-                    throw Exception("Invalid QR code format")
+                    throw Exception("Invalid QR code format: serverUrl=${qrCodeData.serverUrl}, token=${qrCodeData.pairingToken}")
                 }
+                
+                statusMessage = "Connecting to ${qrCodeData.serverUrl}..."
+                kotlinx.coroutines.delay(500)
                 
                 statusMessage = "Connecting to server..."
                 
@@ -121,8 +129,7 @@ fun QRScannerScreen(
                 val apiService = retrofitClient.createApiServiceWithUrl(qrCodeData.serverUrl)
                 val response = apiService.completePairing(pairingRequest)
                 
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val deviceToken = response.body()?.deviceToken
+                if (response.isSuccessful && response.body()?.success == true) {                    val deviceToken = response.body()?.deviceToken
                     if (deviceToken != null) {
                         // Save pairing info
                         pairingRepository.savePairing(
@@ -135,21 +142,25 @@ fun QRScannerScreen(
                         statusMessage = "Syncing employees..."
                         
                         // Sync employees immediately after pairing
+                        // Create a new RetrofitClient AFTER savePairing so getServerUrl() returns the saved URL
                         try {
                             val database = com.nivto.timeclock.data.TimeClockDatabase.getDatabase(context)
+                            val freshRetrofitClient = RetrofitClient(pairingRepository)
                             val syncRepository = com.nivto.timeclock.sync.repository.SyncRepository(
                                 context,
                                 database,
                                 pairingRepository,
-                                retrofitClient
+                                freshRetrofitClient
                             )
                             
                             val employeeCount = syncRepository.syncEmployees()
-                            if (employeeCount > 0) {
-                                Log.d("QRScanner", "Synced $employeeCount employees")
-                            }
+                            Log.d("QRScanner", "Synced $employeeCount employees")
+                            statusMessage = "Synced $employeeCount employee(s). Finishing..."
+                            kotlinx.coroutines.delay(1500)
                         } catch (e: Exception) {
                             Log.e("QRScanner", "Failed to sync employees", e)
+                            statusMessage = "Sync error: ${e.message}"
+                            kotlinx.coroutines.delay(2000)
                         }
                         
                         // Enable automatic sync
@@ -162,7 +173,8 @@ fun QRScannerScreen(
                         throw Exception("Server did not return device token")
                     }
                 } else {
-                    val errorMsg = response.body()?.message ?: "Pairing failed"
+                    val errorBody = response.errorBody()?.string() ?: "no error body"
+                    val errorMsg = response.body()?.message ?: "HTTP ${response.code()}: $errorBody"
                     throw Exception(errorMsg)
                 }
                 
@@ -170,10 +182,7 @@ fun QRScannerScreen(
                 Log.e("QRScanner", "Pairing error", e)
                 statusMessage = "Error: ${e.message}"
                 isProcessing = false
-                // Re-enable scanning after 3 seconds
-                kotlinx.coroutines.delay(3000)
-                scanningEnabled = true
-                statusMessage = "Point camera at QR code on Windows desktop"
+                scanningEnabled = true // Re-enable immediately for retry
             }
         }
     }

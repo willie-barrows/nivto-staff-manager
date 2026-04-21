@@ -3,13 +3,15 @@ package com.nivto.timeclock.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import android.content.Context
 import com.nivto.timeclock.data.entity.ClockEvent
 import com.nivto.timeclock.data.entity.Employee
 import com.nivto.timeclock.data.repository.TimeClockRepository
+import com.nivto.timeclock.sync.worker.SyncWorker
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class ClockViewModel(private val repository: TimeClockRepository) : ViewModel() {
+class ClockViewModel(private val repository: TimeClockRepository, private val context: Context) : ViewModel() {
     
     private val _uiState = MutableStateFlow<ClockUiState>(ClockUiState.Idle)
     val uiState: StateFlow<ClockUiState> = _uiState.asStateFlow()
@@ -117,6 +119,7 @@ class ClockViewModel(private val repository: TimeClockRepository) : ViewModel() 
                         result.fold(
                             onSuccess = { event ->
                                 android.util.Log.d("ClockViewModel", "Clock in success for ${employee.employeeName}, timestamp=${event.timestamp}")
+                                SyncWorker.triggerImmediateSync(context)
                                 _uiState.value = ClockUiState.Success(
                                     message = "Clocked In",
                                     employeeName = employee.employeeName,
@@ -206,6 +209,7 @@ android.util.Log.w("ClockViewModel", "No digits entered")
                         result.fold(
                             onSuccess = { event ->
                                 android.util.Log.d("ClockViewModel", "Clock out success for ${employee.employeeName}, timestamp=${event.timestamp}")
+                                SyncWorker.triggerImmediateSync(context)
                                 _uiState.value = ClockUiState.Success(
                                     message = "Clocked Out",
                                     employeeName = employee.employeeName,
@@ -259,6 +263,7 @@ android.util.Log.w("ClockViewModel", "No digits entered")
                 result.fold(
                     onSuccess = { event ->
                         android.util.Log.d("ClockViewModel", "Operation successful for ${employee.employeeName}")
+                        SyncWorker.triggerImmediateSync(context)
                         _uiState.value = ClockUiState.Success(
                             message = if (isClockIn) "Clocked In" else "Clocked Out",
                             employeeName = employee.employeeName,
@@ -295,12 +300,13 @@ sealed class ClockUiState {
 }
 
 class ClockViewModelFactory(
-    private val repository: TimeClockRepository
+    private val repository: TimeClockRepository,
+    private val context: Context
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ClockViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ClockViewModel(repository) as T
+            return ClockViewModel(repository, context) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

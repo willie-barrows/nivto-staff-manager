@@ -5,6 +5,8 @@ import com.nivto.timeclock.data.dao.EmployeeDao
 import com.nivto.timeclock.data.entity.ClockEvent
 import com.nivto.timeclock.data.entity.Employee
 import com.nivto.timeclock.data.entity.EventType
+import com.nivto.timeclock.sync.data.SyncQueueDao
+import com.nivto.timeclock.sync.data.SyncQueueItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -12,7 +14,8 @@ import java.util.Calendar
 
 class TimeClockRepository(
     private val employeeDao: EmployeeDao,
-    private val clockEventDao: ClockEventDao
+    private val clockEventDao: ClockEventDao,
+    private val syncQueueDao: SyncQueueDao? = null
 ) {
     // Employee operations
     fun getAllActiveEmployees(): Flow<List<Employee>> = employeeDao.getAllActiveEmployees()
@@ -115,6 +118,7 @@ class TimeClockRepository(
                 )
                 
                 clockEventDao.insertEvent(event)
+                syncQueueDao?.insert(SyncQueueItem(eventType = "clock-in", employeeId = employee.employeeId, timestamp = event.timestamp))
                 android.util.Log.d("TimeClockRepo", "Clock IN successful - Employee: ${employee.employeeName}")
                 return@withContext Result.success(event)
             } catch (e: Exception) {
@@ -153,6 +157,7 @@ class TimeClockRepository(
                 )
                 
                 clockEventDao.insertEvent(event)
+                syncQueueDao?.insert(SyncQueueItem(eventType = "clock-out", employeeId = employee.employeeId, timestamp = event.timestamp))
                 android.util.Log.d("TimeClockRepo", "Clock OUT successful - Employee: ${employee.employeeName}")
                 return@withContext Result.success(event)
             } catch (e: Exception) {

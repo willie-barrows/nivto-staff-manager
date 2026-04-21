@@ -33,22 +33,8 @@ class LicenseManager(private val context: Context) {
     }
     
     private val prefs: SharedPreferences by lazy {
-        try {
-            val masterKey = MasterKey.Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-                
-            EncryptedSharedPreferences.create(
-                context,
-                PREFS_NAME,
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            )
-        } catch (e: Exception) {
-            // Fallback to regular SharedPreferences if encryption fails
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        }
+        // For debug builds, use regular SharedPreferences to avoid keystore issues
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
     
     data class LicenseStatus(
@@ -62,23 +48,23 @@ class LicenseManager(private val context: Context) {
     )
     
     /**
-     * Initialize trial on first launch
+     * Initialize with permanent subscription (no trial)
      */
     fun initializeTrial(): LicenseStatus {
         val now = Calendar.getInstance()
         val expiryDate = Calendar.getInstance()
-        expiryDate.add(Calendar.DAY_OF_YEAR, TRIAL_DAYS)
+        expiryDate.add(Calendar.YEAR, 10) // 10 years permanent license
         
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
         val startDateStr = dateFormat.format(now.time)
         val expiryDateStr = dateFormat.format(expiryDate.time)
         
         prefs.edit().apply {
-            putString(KEY_LICENSE_TYPE, TYPE_TRIAL)
+            putString(KEY_LICENSE_TYPE, TYPE_SUBSCRIPTION)
             putString(KEY_START_DATE, startDateStr)
             putString(KEY_EXPIRY_DATE, expiryDateStr)
-            putString(KEY_LICENSE_KEY, null)
-            putString(KEY_SIGNATURE, generateSignature(TYPE_TRIAL, startDateStr, expiryDateStr, null))
+            putString(KEY_LICENSE_KEY, "PERMANENT")
+            putString(KEY_SIGNATURE, generateSignature(TYPE_SUBSCRIPTION, startDateStr, expiryDateStr, "PERMANENT"))
             apply()
         }
         

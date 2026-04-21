@@ -110,7 +110,8 @@ async function loadPairedDevices() {
     try {
         const result = await window.api.syncGetPairedDevices();
         const container = document.getElementById('pairedDevicesContainer');
-        
+        const pairingInstructions = document.getElementById('pairingInstructions');
+
         if (!result.devices || result.devices.length === 0) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 2rem; color: #999;">
@@ -118,9 +119,13 @@ async function loadPairedDevices() {
                     <p style="font-size: 0.875rem; margin-top: 0.5rem;">Generate a QR code above to pair your Android device</p>
                 </div>
             `;
+            if (pairingInstructions) pairingInstructions.style.display = 'block';
             return;
         }
-        
+
+        // Hide pairing instructions if at least one device is paired
+        if (pairingInstructions) pairingInstructions.style.display = 'none';
+
         // Display devices in a table
         let html = `
             <div class="table-container">
@@ -136,11 +141,11 @@ async function loadPairedDevices() {
                     </thead>
                     <tbody>
         `;
-        
+
         result.devices.forEach(device => {
             const pairedDate = new Date(device.pairedAt).toLocaleString();
             const lastSync = device.lastSync ? new Date(device.lastSync).toLocaleString() : 'Never';
-            
+
             html += `
                 <tr>
                     <td><strong>${escapeHtml(device.name)}</strong></td>
@@ -155,15 +160,15 @@ async function loadPairedDevices() {
                 </tr>
             `;
         });
-        
+
         html += `
                     </tbody>
                 </table>
             </div>
         `;
-        
+
         container.innerHTML = html;
-        
+
     } catch (error) {
         console.error('Failed to load paired devices:', error);
         document.getElementById('pairedDevicesContainer').innerHTML = `

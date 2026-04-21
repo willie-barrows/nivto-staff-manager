@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
@@ -45,7 +46,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         val database = (application as TimeClockApplication).database
-        repository = TimeClockRepository(database.employeeDao(), database.clockEventDao())
+        repository = TimeClockRepository(database.employeeDao(), database.clockEventDao(), database.syncQueueDao())
         pinManager = PinManager(this)
         licenseManager = LicenseManager(this)
         csvHandler = CsvHandler(this)
@@ -126,7 +127,7 @@ fun MainScreen(
     when (currentScreen) {
         Screen.Clock -> {
             val viewModel: ClockViewModel = viewModel(
-                factory = ClockViewModelFactory(repository)
+                factory = ClockViewModelFactory(repository, context = LocalContext.current)
             )
             ClockScreen(
                 viewModel = viewModel,
